@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemonade Dreams - An Interactive Story</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .dialogue-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            pointer-events: all;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .character-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .character-name::before {
+            content: "🧒";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .dialogue-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .choice-button {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .choice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .quantity-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 2em;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .quantity-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .quantity-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .price-display {
+            text-align: center;
+            font-size: 1.3em;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .confirm-btn {
+            padding: 20px 40px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            display: block;
+            margin: 20px auto;
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .restart-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            pointer-events: all;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .restart-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emoji-large {
+            font-size: 4em;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading your story...</div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-overlay">
+        <button class="restart-btn" onclick="restartGame()">🔄 Restart</button>
+
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+            <div id="dialogue-container"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game State
+        let gameState = {
+            scene: null,
+            camera: null,
+            renderer: null,
+            currentDay: 1,
+            lemonadeCount: 0,
+            pricePerLemonade: 2
+        };
+
+        // Three.js Scene Setup
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            gameState.scene = new THREE.Scene();
+            gameState.scene.background = new THREE.Color(0x87CEEB);
+
+            // Camera
+            gameState.camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            gameState.camera.position.set(0, 2, 8);
+            gameState.camera.lookAt(0, 1, 0);
+
+            // Renderer
+            gameState.renderer = new THREE.WebGLRenderer({ antialias: true });
+            gameState.renderer.setSize(window.innerWidth, window.innerHeight);
+            gameState.renderer.shadowMap.enabled = true;
+            container.appendChild(gameState.renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            gameState.scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            gameState.scene.add(directionalLight);
+
+            const sunLight = new THREE.PointLight(0xffd700, 0.5);
+            sunLight.position.set(-20, 30, -20);
+            gameState.scene.add(sunLight);
+
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(50, 50);
+            const groundMaterial = new THREE.MeshLambertMaterial({
+                color: 0x90EE90
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            gameState.scene.add(ground);
+
+            // Create initial scene
+            createDay1Scene();
+
+            // Animation loop
+            animate();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Hide loading screen
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function createDay1Scene() {
+            // Clear previous objects (except ground and lights)
+            while(gameState.scene.children.length > 5) {
+                gameState.scene.remove(gameState.scene.children[5]);
+            }
+
+            // Lemonade Stand (table)
+            const standGeometry = new THREE.BoxGeometry(3, 1.5, 2);
+            const standMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+            const stand = new THREE.Mesh(standGeometry, standMaterial);
+            stand.position.set(0, 0.75, 0);
+            stand.castShadow = true;
+            gameState.scene.add(stand);
+
+            // Stand roof
+            const roofGeometry = new THREE.ConeGeometry(2.5, 1.5, 4);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0xFF6B6B });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.set(0, 2.5, 0);
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            gameState.scene.add(roof);
+
+            // Lemonade pitcher
+            const pitcherGeometry = new THREE.CylinderGeometry(0.3, 0.4, 0.8, 16);
+            const pitcherMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFF00 });
+            const pitcher = new THREE.Mesh(pitcherGeometry, pitcherMaterial);
+            pitcher.position.set(0.5, 1.6, 0);
+            pitcher.castShadow = true;
+            gameState.scene.add(pitcher);
+
+            // Little girl (simplified character)
+            createGirl(gameState.scene, -1, 0.5, 1, 0xFFB6C1);
+
+            // Sign
+            const signGeometry = new THREE.BoxGeometry(1.8, 0.8, 0.1);
+            const signMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+            const sign = new THREE.Mesh(signGeometry, signMaterial);
+            sign.position.set(0, 3, 0.5);
+            gameState.scene.add(sign);
+
+            // Add some cups
+            for(let i = 0; i < 3; i++) {
+                const cupGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.3, 8);
+                const cupMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+                const cup = new THREE.Mesh(cupGeometry, cupMaterial);
+                cup.position.set(-0.8 + i * 0.4, 1.65, 0.3);
+                cup.castShadow = true;
+                gameState.scene.add(cup);
+            }
+
+            // Trees in background
+            createTree(gameState.scene, -8, 0, -5);
+            createTree(gameState.scene, 8, 0, -5);
+            createTree(gameState.scene, -6, 0, -8);
+
+            // Sun
+            const sunGeometry = new THREE.SphereGeometry(2, 32, 32);
+            const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFDB813 });
+            const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            sun.position.set(-15, 15, -20);
+            gameState.scene.add(sun);
+        }
+
+        function createDay2SceneHappy() {
+            // Clear previous objects
+            while(gameState.scene.children.length > 5) {
+                gameState.scene.remove(gameState.scene.children[5]);
+            }
+
+            // Girl with bicycle
+            createGirl(gameState.scene, 0, 0.5, 2, 0xFFB6C1);
+
+            // Bicycle
+            createBicycle(gameState.scene, 1.5, 0.5, 2);
+
+            // Balloons
+            createBalloon(gameState.scene, -2, 3, 0, 0xFF69B4);
+            createBalloon(gameState.scene, -1.5, 3.5, 0, 0x87CEEB);
+            createBalloon(gameState.scene, -2.5, 3.2, 0, 0xFFFF00);
+
+            // Flowers
+            for(let i = 0; i < 10; i++) {
+                const x = (Math.random() - 0.5) * 20;
+                const z = (Math.random() - 0.5) * 20;
+                createFlower(gameState.scene, x, 0, z);
+            }
+
+            // Sun
+            const sunGeometry = new THREE.SphereGeometry(2, 32, 32);
+            const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFDB813 });
+            const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            sun.position.set(-15, 15, -20);
+            gameState.scene.add(sun);
+
+            // Rainbow
+            createRainbow(gameState.scene);
+        }
+
+        function createDay2SceneSad() {
+            // Clear previous objects
+            while(gameState.scene.children.length > 5) {
+                gameState.scene.remove(gameState.scene.children[5]);
+            }
+
+            // Change sky to cloudy
+            gameState.scene.background = new THREE.Color(0xA9A9A9);
+
+            // Sad girl
+            createGirl(gameState.scene, 0, 0.5, 2, 0xFFB6C1, true);
+
+            // Rain clouds
+            createCloud(gameState.scene, -5, 8, -10, 0x808080);
+            createCloud(gameState.scene, 0, 9, -12, 0x808080);
+            createCloud(gameState.scene, 5, 8, -10, 0x808080);
+
+            // Bicycle shop in distance
+            const shopGeometry = new THREE.BoxGeometry(4, 3, 3);
+            const shopMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const shop = new THREE.Mesh(shopGeometry, shopMaterial);
+            shop.position.set(0, 1.5, -8);
+            gameState.scene.add(shop);
+
+            // Shop window
+            const windowGeometry = new THREE.BoxGeometry(2, 1.5, 0.1);
+            const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB });
+            const shopWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+            shopWindow.position.set(0, 1.5, -6.45);
+            gameState.scene.add(shopWindow);
+
+            // Bicycle in window (out of reach)
+            createBicycle(gameState.scene, 0, 1.5, -6.4);
+        }
+
+        function createGirl(scene, x, y, z, color, sad = false) {
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const skinMaterial = new THREE.MeshLambertMaterial({ color: 0xFFDBAC });
+            const head = new THREE.Mesh(headGeometry, skinMaterial);
+            head.position.set(x, y + 1.1, z);
+            head.castShadow = true;
+            scene.add(head);
+
+            // Body
+            const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 0.8, 8);
+            const dressMaterial = new THREE.MeshLambertMaterial({ color: color });
+            const body = new THREE.Mesh(bodyGeometry, dressMaterial);
+            body.position.set(x, y + 0.4, z);
+            body.castShadow = true;
+            scene.add(body);
+
+            // Arms
+            const armGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.6, 8);
+            const leftArm = new THREE.Mesh(armGeometry, skinMaterial);
+            leftArm.position.set(x - 0.35, y + 0.5, z);
+            leftArm.rotation.z = Math.PI / 6;
+            leftArm.castShadow = true;
+            scene.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeometry, skinMaterial);
+            rightArm.position.set(x + 0.35, y + 0.5, z);
+            rightArm.rotation.z = -Math.PI / 6;
+            rightArm.castShadow = true;
+            scene.add(rightArm);
+
+            // Legs
+            const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 8);
+            const leftLeg = new THREE.Mesh(legGeometry, skinMaterial);
+            leftLeg.position.set(x - 0.15, y - 0.25, z);
+            leftLeg.castShadow = true;
+            scene.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, skinMaterial);
+            rightLeg.position.set(x + 0.15, y - 0.25, z);
+            rightLeg.castShadow = true;
+            scene.add(rightLeg);
+
+            // Hair
+            const hairGeometry = new THREE.SphereGeometry(0.32, 16, 16);
+            const hairMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+            hair.position.set(x, y + 1.2, z);
+            hair.scale.set(1, 1.2, 1);
+            hair.castShadow = true;
+            scene.add(hair);
+
+            if (sad) {
+                // Tears
+                const tearGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+                const tearMaterial = new THREE.MeshLambertMaterial({ color: 0x4169E1 });
+                const tear1 = new THREE.Mesh(tearGeometry, tearMaterial);
+                tear1.position.set(x - 0.15, y + 1.05, z + 0.25);
+                scene.add(tear1);
+
+                const tear2 = new THREE.Mesh(tearGeometry, tearMaterial);
+                tear2.position.set(x + 0.15, y + 1.05, z + 0.25);
+                scene.add(tear2);
+            }
+        }
+
+        function createBicycle(scene, x, y, z) {
+            // Frame
+            const frameGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8);
+            const frameMaterial = new THREE.MeshLambertMaterial({ color: 0xFF1493 });
+            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+            frame.position.set(x, y, z);
+            frame.rotation.z = Math.PI / 4;
+            scene.add(frame);
+
+            // Wheels
+            const wheelGeometry = new THREE.TorusGeometry(0.3, 0.05, 8, 16);
+            const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            const frontWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            frontWheel.position.set(x + 0.5, y - 0.3, z);
+            frontWheel.rotation.y = Math.PI / 2;
+            scene.add(frontWheel);
+
+            const backWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+            backWheel.position.set(x - 0.5, y - 0.3, z);
+            backWheel.rotation.y = Math.PI / 2;
+            scene.add(backWheel);
+
+            // Seat
+            const seatGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.2);
+            const seatMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const seat = new THREE.Mesh(seatGeometry, seatMaterial);
+            seat.position.set(x, y + 0.3, z);
+            scene.add(seat);
+        }
+
+        function createTree(scene, x, y, z) {
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 3, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.set(x, y + 1.5, z);
+            trunk.castShadow = true;
+            scene.add(trunk);
+
+            // Foliage
+            const foliageGeometry = new THREE.SphereGeometry(1.5, 16, 16);
+            const foliageMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+            foliage.position.set(x, y + 3.5, z);
+            foliage.castShadow = true;
+            scene.add(foliage);
+        }
+
+        function createBalloon(scene, x, y, z, color) {
+            const balloonGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const balloonMaterial = new THREE.MeshLambertMaterial({ color: color });
+            const balloon = new THREE.Mesh(balloonGeometry, balloonMaterial);
+            balloon.position.set(x, y, z);
+            balloon.scale.set(1, 1.3, 1);
+            scene.add(balloon);
+
+            // String
+            const stringGeometry = new THREE.CylinderGeometry(0.01, 0.01, 2, 4);
+            const stringMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            const string = new THREE.Mesh(stringGeometry, stringMaterial);
+            string.position.set(x, y - 1, z);
+            scene.add(string);
+        }
+
+        function createFlower(scene, x, y, z) {
+            // Stem
+            const stemGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 4);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.set(x, y + 0.15, z);
+            scene.add(stem);
+
+            // Petals
+            const petalGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+            const colors = [0xFF69B4, 0xFF1493, 0xFFB6C1, 0xFF6347];
+            const petalMaterial = new THREE.MeshLambertMaterial({
+                color: colors[Math.floor(Math.random() * colors.length)]
+            });
+            const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+            petal.position.set(x, y + 0.35, z);
+            petal.scale.set(1.5, 0.5, 1.5);
+            scene.add(petal);
+        }
+
+        function createCloud(scene, x, y, z, color) {
+            const cloudGeometry = new THREE.SphereGeometry(1.5, 16, 16);
+            const cloudMaterial = new THREE.MeshLambertMaterial({ color: color });
+
+            for(let i = 0; i < 3; i++) {
+                const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                cloud.position.set(x + i * 1, y + Math.random() * 0.5, z);
+                cloud.scale.set(1 + Math.random() * 0.5, 0.8, 1);
+                scene.add(cloud);
+            }
+        }
+
+        function createRainbow(scene) {
+            const colors = [0xFF0000, 0xFF7F00, 0xFFFF00, 0x00FF00, 0x0000FF, 0x4B0082, 0x9400D3];
+            const radius = 15;
+
+            for(let i = 0; i < colors.length; i++) {
+                const arcGeometry = new THREE.TorusGeometry(radius + i * 0.3, 0.2, 8, 32, Math.PI);
+                const arcMaterial = new THREE.MeshBasicMaterial({ color: colors[i] });
+                const arc = new THREE.Mesh(arcGeometry, arcMaterial);
+                arc.position.set(0, -5, -15);
+                arc.rotation.y = Math.PI;
+                scene.add(arc);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Camera gentle movement
+            const time = Date.now() * 0.0005;
+            gameState.camera.position.x = Math.sin(time * 0.5) * 0.5;
+
+            gameState.renderer.render(gameState.scene, gameState.camera);
+        }
+
+        function onWindowResize() {
+            gameState.camera.aspect = window.innerWidth / window.innerHeight;
+            gameState.camera.updateProjectionMatrix();
+            gameState.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Narrative System
+        function showDialogue(characterName, text, choices = []) {
+            const container = document.getElementById('dialogue-container');
+
+            let html = `<div class="dialogue-box">`;
+
+            if (characterName) {
+                html += `<div class="character-name">${characterName}</div>`;
+            }
+
+            html += `<div class="dialogue-text">${text}</div>`;
+
+            if (choices.length > 0) {
+                html += `<div class="choices">`;
+                choices.forEach((choice, index) => {
+                    html += `<button class="choice-button" onclick="handleChoice(${index})">${choice.text}</button>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }
+
+        function showQuantitySelector() {
+            const container = document.getElementById('dialogue-container');
+
+            const html = `
+                <div class="dialogue-box">
+                    <div class="character-name">Lemonade Stand</div>
+                    <div class="dialogue-text">How many cups of lemonade would you like to buy?</div>
+                    <div class="emoji-large">🍋</div>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+                        <div class="quantity-display" id="quantity">${gameState.lemonadeCount}</div>
+                        <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                    </div>
+                    <div class="price-display">$${gameState.pricePerLemonade} per cup | Total: $${gameState.lemonadeCount * gameState.pricePerLemonade}</div>
+                    <button class="confirm-btn" onclick="confirmPurchase()">✓ Confirm Purchase</button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function changeQuantity(delta) {
+            gameState.lemonadeCount = Math.max(0, gameState.lemonadeCount + delta);
+            document.getElementById('quantity').textContent = gameState.lemonadeCount;
+            document.querySelector('.price-display').textContent =
+                `$${gameState.pricePerLemonade} per cup | Total: $${gameState.lemonadeCount * gameState.pricePerLemonade}`;
+        }
+
+        function confirmPurchase() {
+            if (gameState.lemonadeCount === 0) {
+                showDialogue("Little Girl", "Oh... you don't want any? That's okay... maybe next time...", [
+                    { text: "Actually, let me buy some!", action: () => showQuantitySelector() },
+                    { text: "Sorry, maybe later", action: () => endDay1NoPurchase() }
+                ]);
+                return;
+            }
+
+            showDialogue("Little Girl",
+                `Thank you so much! That's ${gameState.lemonadeCount} cup${gameState.lemonadeCount > 1 ? 's' : ''} of lemonade! Here you go! Have a wonderful day! 🍋✨`,
+                [{ text: "You're welcome! Have a great day!", action: () => transitionToDay2() }]
+            );
+        }
+
+        function endDay1NoReturn() {
+            showDialogue("", "You walk away without buying any lemonade...", [
+                { text: "Continue to next day", action: () => transitionToDay2() }
+            ]);
+        }
+
+        function endDay1NoReturn() {
+            showDialogue("", "You walk away without buying any lemonade...", [
+                { text: "Continue to next day", action: () => transitionToDay2() }
+            ]);
+        }
+
+        function transitionToDay2() {
+            gameState.currentDay = 2;
+
+            showDialogue("", "☀️ The Next Day ☀️", []);
+
+            setTimeout(() => {
+                if (gameState.lemonadeCount >= 5) {
+                    showDay2Happy();
+                } else {
+                    showDay2Sad();
+                }
+            }, 2000);
+        }
+
+        function showDay2Happy() {
+            createDay2SceneHappy();
+
+            showDialogue("Little Girl",
+                "Hey! There you are! I wanted to find you and thank you! 🎉",
+                [{ text: "Oh, hi! What happened?", action: () => showDay2HappyPart2() }]
+            );
+        }
+
+        function showDay2HappyPart2() {
+            showDialogue("Little Girl",
+                `Thanks to you and other wonderful people like you, I sold enough lemonade yesterday! I finally had enough money to buy my dream bicycle! Look! 🚲✨ I'm so happy I could cry! You really helped make my dream come true!`,
+                [
+                    { text: "I'm so happy for you! Enjoy your bicycle!", action: () => showDay2HappyEnd() },
+                    { text: "That's wonderful! You deserved it!", action: () => showDay2HappyEnd() }
+                ]
+            );
+        }
+
+        function showDay2HappyEnd() {
+            showDialogue("Little Girl",
+                "Thank you! You're the best! I'll never forget your kindness! 💖🌈",
+                [{ text: "🔄 Play Again", action: () => restartGame() }]
+            );
+        }
+
+        function showDay2Sad() {
+            createDay2SceneSad();
+
+            showDialogue("",
+                "As you walk down the street, you see the little girl sitting on a bench... She has tears streaming down her face. 😢",
+                [
+                    { text: "Approach her and ask what's wrong", action: () => showDay2SadPart2() },
+                    { text: "Walk over to comfort her", action: () => showDay2SadPart2() }
+                ]
+            );
+        }
+
+        function showDay2SadPart2() {
+            showDialogue("Little Girl",
+                "*sniffles* Oh... hi... *wipes tears*",
+                [{ text: "What's wrong? Why are you crying?", action: () => showDay2SadPart3() }]
+            );
+        }
+
+        function showDay2SadPart3() {
+            showDialogue("Little Girl",
+                "*sobbing* I've been saving up for months to buy a bicycle... It's right there in that shop window. I was so close... I counted my money last night, and I'm still $10 short... 💔 The shopkeeper said someone else wants to buy it tomorrow... I'll never get my bicycle now...",
+                [
+                    { text: "I'm so sorry to hear that...", action: () => showDay2SadEnd() },
+                    { text: "Don't give up! Maybe there's still a way", action: () => showDay2SadEnd() }
+                ]
+            );
+        }
+
+        function showDay2SadEnd() {
+            showDialogue("Little Girl",
+                "Thank you for listening... *continues crying softly* I guess some dreams just don't come true... 😞💔",
+                [{ text: "🔄 Play Again (and maybe make different choices?)", action: () => restartGame() }]
+            );
+        }
+
+        // Game Flow
+        function startGame() {
+            showDialogue("",
+                "🌞 A Sunny Summer Day 🌞<br><br>You're walking down a neighborhood street when you spot a small lemonade stand. Behind it stands a cheerful little girl with bright eyes and a big smile.",
+                [
+                    { text: "Walk over to the lemonade stand", action: () => approachStand() },
+                    { text: "Stop and look at the stand", action: () => approachStand() }
+                ]
+            );
+        }
+
+        function approachStand() {
+            showDialogue("Little Girl",
+                "Hello! Welcome to my lemonade stand! 🍋 Would you like to buy some fresh, homemade lemonade? It's super delicious! My mom helped me make it this morning!",
+                [
+                    { text: "Sure! I'd love some lemonade!", action: () => showQuantitySelector() },
+                    { text: "What are you saving up for?", action: () => askAboutDream() }
+                ]
+            );
+        }
+
+        function askAboutDream() {
+            showDialogue("Little Girl",
+                "Oh! *eyes light up* I'm saving up for a bicycle! There's a beautiful pink one at the shop down the street. I've wanted it for so long! If I sell enough lemonade, I might finally be able to buy it! Every cup helps me get closer to my dream! 🚲✨",
+                [
+                    { text: "That's wonderful! Let me buy some lemonade!", action: () => showQuantitySelector() },
+                    { text: "Good luck with your goal!", action: () => showQuantitySelector() }
+                ]
+            );
+        }
+
+        function endDay1NoPost() {
+            gameState.lemonadeCount = 0;
+            transitionToDay2();
+        }
+
+        function restartGame() {
+            gameState.currentDay = 1;
+            gameState.lemonadeCount = 0;
+            gameState.scene.background = new THREE.Color(0x87CEEB);
+            createDay1Scene();
+            startGame();
+        }
+
+        // Choice handler
+        window.choiceActions = [];
+        function handleChoice(index) {
+            const action = window.choiceActions[index];
+            if (action) action();
+        }
+
+        // Modify showDialogue to store actions
+        function showDialogue(characterName, text, choices = []) {
+            const container = document.getElementById('dialogue-container');
+            window.choiceActions = choices.map(c => c.action);
+
+            let html = `<div class="dialogue-box">`;
+
+            if (characterName) {
+                html += `<div class="character-name">${characterName}</div>`;
+            }
+
+            html += `<div class="dialogue-text">${text}</div>`;
+
+            if (choices.length > 0) {
+                html += `<div class="choices">`;
+                choices.forEach((choice, index) => {
+                    html += `<button class="choice-button" onclick="handleChoice(${index})">${choice.text}</button>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initScene();
+            startGame();
+        });
+    </script>
+</body>
+</html>
