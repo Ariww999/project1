@@ -254,7 +254,7 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script>
         // Game State
         let gameState = {
@@ -720,13 +720,8 @@
             );
         }
 
-        function endDay1NoReturn() {
-            showDialogue("", "You walk away without buying any lemonade...", [
-                { text: "Continue to next day", action: () => transitionToDay2() }
-            ]);
-        }
-
-        function endDay1NoReturn() {
+        function endDay1NoPurchase() {
+            gameState.lemonadeCount = 0;
             showDialogue("", "You walk away without buying any lemonade...", [
                 { text: "Continue to next day", action: () => transitionToDay2() }
             ]);
@@ -837,11 +832,6 @@
                     { text: "Good luck with your goal!", action: () => showQuantitySelector() }
                 ]
             );
-        }
-
-        function endDay1NoPost() {
-            gameState.lemonadeCount = 0;
-            transitionToDay2();
         }
 
         function restartGame() {
