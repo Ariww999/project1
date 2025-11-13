@@ -50,10 +50,19 @@ If you buy fewer than 5 lemonades, the little girl falls short of her savings go
 
 ## 🚀 Running the Game
 
-### Option 1: Direct Browser Open
-Simply double-click `index.html` or open it in your browser
+### Option 1: Play Directly from GitHub (Easiest!)
 
-### Option 2: Local Server
+**Click this link to play immediately:**
+- `https://htmlpreview.github.io/?https://github.com/Ariww999/project1/blob/claude/lemonade-girl-narrative-game-011CV4yMW5zS9iYuXayfHeN8/index.html`
+
+Or use this alternative:
+- `https://raw.githack.com/Ariww999/project1/claude/lemonade-girl-narrative-game-011CV4yMW5zS9iYuXayfHeN8/index.html`
+
+### Option 2: Download and Open
+1. Download `index.html` from GitHub
+2. Double-click the file or open it in your browser
+
+### Option 3: Local Server
 ```bash
 # Using Python 3
 python -m http.server 8000
